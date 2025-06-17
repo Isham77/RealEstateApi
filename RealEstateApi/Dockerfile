@@ -1,20 +1,21 @@
-# Build stage
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+# Use .NET 8 SDK to build the app
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
 
-# Copy everything and restore dependencies
-COPY . .
+# Copy everything
+COPY . ./
+
+# Restore and publish
 RUN dotnet restore
-RUN dotnet publish -c Release -o /out
+RUN dotnet publish -c Release -o out
 
-# Runtime stage
-FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS runtime
+# Runtime image
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
-COPY --from=build /out .
+COPY --from=build /app/out .
 
-# Expose port
-ENV ASPNETCORE_URLS=http://+:5000
+# Set PORT from env (Render injects PORT)
+ENV ASPNETCORE_URLS=http://+:${PORT}
 EXPOSE 5000
 
 ENTRYPOINT ["dotnet", "RealEstateApi.dll"]
-
