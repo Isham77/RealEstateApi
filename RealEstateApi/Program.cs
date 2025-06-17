@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.EntityFrameworkCore;
 using System.Text;
+using RealEstateApi.Data; // ✅ Replace with your actual namespace
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,10 +13,14 @@ builder.WebHost.UseUrls($"http://*:{port}");
 // ✅ Register Services
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(); // Swagger always included
+builder.Services.AddSwaggerGen();
 builder.Services.AddMvc().AddXmlSerializerFormatters();
 
-// ✅ Configure JWT Authentication
+// ✅ Add PostgreSQL EF Core DB Context
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// ✅ JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -33,20 +39,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 var app = builder.Build();
 
-// ✅ Enable Swagger ALWAYS (including in Production)
+// ✅ Swagger
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "RealEstate API V1");
-    c.RoutePrefix = "swagger"; // default, but explicit
+    c.RoutePrefix = "swagger";
 });
 
 // ✅ Middleware
 app.UseHttpsRedirection();
-
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();
