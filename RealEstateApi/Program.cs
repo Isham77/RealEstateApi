@@ -4,16 +4,17 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 👉 Inject PORT from environment variable (e.g., Render.com)
+// ✅ Use dynamic PORT for Render
 var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
 builder.WebHost.UseUrls($"http://*:{port}");
 
-// Add services to the container
+// ✅ Register Services
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(); // Swagger always included
 builder.Services.AddMvc().AddXmlSerializerFormatters();
 
+// ✅ Configure JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -32,13 +33,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
-if (app.Environment.IsDevelopment())
+// ✅ Enable Swagger ALWAYS (including in Production)
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "RealEstate API V1");
+    c.RoutePrefix = "swagger"; // default, but explicit
+});
 
+// ✅ Middleware
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
