@@ -17,7 +17,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddMvc().AddXmlSerializerFormatters();
 
 // ✅ Add PostgreSQL EF Core DB Context
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
+ builder.Services.AddDbContext<ApiDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // ✅ JWT Authentication
